@@ -12,7 +12,15 @@ public class WeatherModal {
         this.temperature = temperature;
         this.wind = wind;
     }
-
+    @Override
+    public String toString() {
+        return "WeatherModal{" +
+                "icon='" + icon + '\'' +
+                ", time='" + time + '\'' +
+                ", temperature='" + temperature + '\'' +
+                ", windSpeed='" + wind + '\'' +
+                '}';
+    }
     public String getIcon() {
         return icon;
     }

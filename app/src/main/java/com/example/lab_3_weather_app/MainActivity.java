@@ -1,10 +1,7 @@
 package com.example.lab_3_weather_app;
 
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
+import android.annotation.SuppressLint;
+
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,14 +11,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
@@ -31,24 +21,22 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
-import android.Manifest;
+import com.squareup.picasso.Picasso;
+
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
     private RelativeLayout homeRl;
     private ProgressBar loadingPB;
     private ImageView backIV, iconIV, searchIV;
-    private TextView cityName, tempertureTV, condition;
+    private TextView cityName, tempertureTV, conditionTV;
 
     private RecyclerView weatherRV;
     private TextInputEditText cityEdt;
@@ -59,11 +47,12 @@ public class MainActivity extends AppCompatActivity {
     private String cityNameStr;
 
     private void getWeastherInfo(String city) {
-        String url = "http://api.weatherapi.com/v1/forecast.json?key=461377bec99745d29f794456242411&q=" + city + "&days=1&aqi=no&alerts=no";
-        cityName.setText(cityNameStr);
+        String url = "https://api.weatherapi.com/v1/forecast.json?key=461377bec99745d29f794456242411&q=" + city + "&days=1&aqi=no&alerts=no";
+        cityName.setText(city);
         RequestQueue requestQueue= Volley.newRequestQueue(MainActivity.this);
 
         JsonObjectRequest jsonObjectRequest=new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onResponse(JSONObject response) {
                 loadingPB.setVisibility(View.GONE);
@@ -72,6 +61,33 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String temperature =response.getJSONObject("current").getString("temp_c");
                     tempertureTV.setText(temperature);
+
+                    int isDay =response.getJSONObject("current").getInt("is_day");
+
+                    String condition =response.getJSONObject("current").getJSONObject("condition").getString("text");
+                    String conditionIcon =response.getJSONObject("current").getJSONObject("condition").getString("icon");
+                    Picasso.get().load("https:".concat(conditionIcon)).into(iconIV);
+                    conditionTV.setText(condition);
+                    JSONObject forecastObj=response.getJSONObject("forecast");
+                    JSONObject forecast0=forecastObj.getJSONArray("forecastday").getJSONObject(0);
+                    JSONArray hourArray=forecast0.getJSONArray("hour");
+                    for(int i=0;i<hourArray.length();i++){
+                        JSONObject hourObj=hourArray.getJSONObject(i);
+
+                        String time =hourObj.getString("time");
+                        String temper = hourObj.getString("temp_c");
+                        String img =hourObj.getJSONObject("condition").getString("icon");
+                        String wind=hourObj.getString("wind_kph");
+
+                        weatherModalArrayList.add(new WeatherModal(img,time,temper,wind));
+                        for (WeatherModal weatherModal : weatherModalArrayList) {
+                            Log.d("WeatherData", "WeatherModal: " + weatherModal.toString());
+                        }
+                    }
+
+                    weatherRVAdapter.notifyDataSetChanged();
+
+
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
@@ -99,72 +115,37 @@ public class MainActivity extends AppCompatActivity {
         cityEdt = findViewById(R.id.idEdtCity);
         backIV = findViewById(R.id.idIVBack);
         iconIV = findViewById(R.id.idIcon);
+        backIV=findViewById(R.id.idIVBack);
         searchIV = findViewById(R.id.idSearch);
+        conditionTV=findViewById(R.id.idCondition);
         weatherModalArrayList = new ArrayList<>();
         weatherRVAdapter = new WeatherAdapter(this, weatherModalArrayList);
         weatherRV.setAdapter(weatherRVAdapter);
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_CODE);
-        }
-        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        cityNameStr=getCityName(location.getLatitude(),location.getLongitude());
+
+        cityNameStr=getCityName();
         getWeastherInfo(cityNameStr);
-    searchIV.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            String city=cityEdt.getText().toString();
-            if(city.isEmpty()){
-                Toast.makeText(MainActivity.this,"Please enter city name",Toast.LENGTH_SHORT).show();
-            }else{
-                cityName.setText(cityNameStr);
-                getWeastherInfo(city);
+        searchIV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String city=cityEdt.getText().toString();
+                if(city.isEmpty()){
+                    Toast.makeText(MainActivity.this,"Please enter city name",Toast.LENGTH_SHORT).show();
+                }else{
+                    cityName.setText(cityNameStr);
+                    getWeastherInfo(city);
 
+                }
             }
-        }
-    });
+        });
 
 
 
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode==PERMISSION_CODE){
-            if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this,"Permission granted .. ", Toast.LENGTH_SHORT).show();
-            }else{
-                Toast.makeText(this,"Please provide the permissions",Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }
+
+    private String getCityName() {
+        String cityName = "Kyiv";
+
+        return cityName;
     }
-
-    private String getCityName(double ourLatitude, double ourLongtitude) {
-      String cityName = "Not Found";
-       Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
-       try{
-           List<Address> addressess=gcd.getFromLocation(ourLatitude,ourLongtitude,10);
-           for(Address address:addressess){
-               if(address!=null){
-                   String city=address.getLocality();
-                   if(city!=null && !city.equals("")){
-                       cityName=city;
-                   }else{
-                       Log.d("TAG","CITY NO FOUND");
-                       Toast.makeText(this,"User City Not Found" ,Toast.LENGTH_SHORT).show();
-
-                   }
-               }
-           }
-
-       }catch(IOException e){
-        e.printStackTrace();
-       }
-       return cityName;
-
-
-   }
 }
