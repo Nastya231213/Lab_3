@@ -1,3 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Lab_3_Weather_App</string>
+    <string name="app_name">Weather App</string>
+    <string name="city_name_hint">Enter city name</string>
+    <string name="loading_message">Loading...</string>
+    <string name="weather_data_error">Please enter a valid city name.</string>
+    <string name="search">Search</string>
+    <string name="temperature">Temperature</string>
+    <string name="wind_speed">Wind Speed</string>
+    <string name="time">Time</string>
+    <string name="condition">Condition</string>
 </resources>

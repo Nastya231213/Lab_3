@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Погода</string>
+    <string name="city_name_hint">Введіть назву міста</string>
+    <string name="loading_message">Завантаження...</string>
+    <string name="weather_data_error">Будь ласка, введіть правильну назву міста.</string>
+    <string name="search">Пошук</string>
+    <string name="temperature">Температура</string>
+    <string name="wind_speed">Швидкість вітру</string>
+    <string name="time">Час</string>
+    <string name="condition">Умови</string>
+</resources>
