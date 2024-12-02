@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-
+import android.net.Uri;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -49,13 +49,31 @@ public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
     private int PERMISSION_CODE = 1;
     private String cityNameStr;
+    public static final String SCHEME = "https";
+    public static final String AUTHORITY = "api.weatherapi.com";
+    public static final String PATH = "v1/forecast.json";
+    public static final String WEATHER_API_KEY = "461377bec99745d29f794456242411";
+    public static final String AQI_PARAM = "no";
+    public static final String ALERTS_PARAM = "no";
+    public static final int DAYS = 1;
+    public static final String BASE_URL = SCHEME + "://" + AUTHORITY + "/" + PATH;
 
     private void getWeastherInfo(String city) {
         try {
-            // Кодуємо місто перед передачею в запит
             String encodedCity = URLEncoder.encode(city, "UTF-8");
 
-            String url = "https://api.weatherapi.com/v1/forecast.json?key=461377bec99745d29f794456242411&q=" + encodedCity + "&days=1&aqi=no&alerts=no";
+            Uri.Builder uriBuilder = new Uri.Builder()
+                    .scheme(SCHEME)
+                    .authority(AUTHORITY)
+                    .path(PATH)
+                    .appendQueryParameter("key", WEATHER_API_KEY)
+                    .appendQueryParameter("q", encodedCity)
+                    .appendQueryParameter("days", String.valueOf(DAYS))
+                    .appendQueryParameter("aqi", AQI_PARAM)
+                    .appendQueryParameter("alerts", ALERTS_PARAM);
+
+            String url = uriBuilder.build().toString();
+
             cityName.setText(city);
             RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
 
