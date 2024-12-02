@@ -46,8 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText cityEdt;
     private WeatherAdapter weatherRVAdapter;
     private ArrayList<WeatherModal> weatherModalArrayList;
-    private LocationManager locationManager;
-    private int PERMISSION_CODE = 1;
     private String cityNameStr;
     public static final String SCHEME = "https";
     public static final String AUTHORITY = "api.weatherapi.com";
@@ -56,10 +54,11 @@ public class MainActivity extends AppCompatActivity {
     public static final String AQI_PARAM = "no";
     public static final String ALERTS_PARAM = "no";
     public static final int DAYS = 1;
-    public static final String BASE_URL = SCHEME + "://" + AUTHORITY + "/" + PATH;
 
     private void getWeastherInfo(String city) {
         try {
+            Log.d("WeatherApp", "Запит на погоду для міста: " + city);
+
             String encodedCity = URLEncoder.encode(city, "UTF-8");
 
             Uri.Builder uriBuilder = new Uri.Builder()
@@ -74,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
             String url = uriBuilder.build().toString();
 
+            Log.d("WeatherApp", "Сформований URL: " + url);
+
             cityName.setText(city);
             RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
 
@@ -85,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
                     homeRl.setVisibility(View.VISIBLE);
                     weatherModalArrayList.clear();
                     try {
+                        Log.d("WeatherApp", "Отримано відповідь від API: " + response.toString());
+
                         String temperature = response.getJSONObject("current").getString("temp_c");
                         tempertureTV.setText(getString(R.string.temperature) + " " + temperature);
 
@@ -110,12 +113,13 @@ public class MainActivity extends AppCompatActivity {
                         weatherRVAdapter.notifyDataSetChanged();
 
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        Log.e("WeatherApp", "Помилка обробки відповіді: " + e.getMessage(), e);
                     }
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
+                    Log.e("WeatherApp", "Помилка запиту на погоду: " + error.getMessage(), error);
                     Toast.makeText(MainActivity.this, getString(R.string.weather_data_error), Toast.LENGTH_SHORT).show();
                 }
             });
@@ -123,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             requestQueue.add(jsonObjectRequest);
 
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            Log.e("WeatherApp", "Помилка кодування міста: " + e.getMessage(), e);
             Toast.makeText(MainActivity.this, "Помилка кодування міста", Toast.LENGTH_SHORT).show();
         }
     }
